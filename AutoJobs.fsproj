@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyCompany>TC Fairplay</AssemblyCompany>
+    <AssemblyProduct>Automatic Jobs</AssemblyProduct>
+    <Version>0.9.0</Version>
+    <TargetFramework>net7.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <SatelliteResourceLanguages>en-US</SatelliteResourceLanguages>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="src/Utils.fs" />
+    <Compile Include="src/Types.fs" />
+    <Compile Include="src/MeteoSwiss.fs" />
+    <Compile Include="src/GotCourts.fs" />
+    <Compile Include="src/Jobs.fs" />
+    <Compile Include="src/Main.fs" />
+  </ItemGroup>
+</Project>
