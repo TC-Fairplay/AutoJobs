@@ -17,16 +17,19 @@ module private Testing =
         guids |> List.iter (GotCourts.deleteBlocking gotCourtsClient)
 
 module Main =
-    let private getEnvVar = Environment.GetEnvironmentVariable
     let private apiKeyName = "GOTCOURTS_API_KEY"
     let private phpSessionIdName = "GOTCOURTS_PHP_SESSION_ID"
 
+    let getAuthDataFromEnvironment () =
+        let get = Environment.GetEnvironmentVariable
+        {
+            ApiKey = get apiKeyName
+            PhpSessionId = get phpSessionIdName
+        }
+
     [<EntryPoint>]
     let main (args: string[]): int =
-        let authData = {
-            ApiKey = getEnvVar apiKeyName
-            PhpSessionId = getEnvVar phpSessionIdName
-        }
+        let authData = getAuthDataFromEnvironment ()
 
         if isNull authData.ApiKey || isNull authData.PhpSessionId then
             printfn "💥 Please set environment variables '%s' and '%s'." apiKeyName phpSessionIdName
