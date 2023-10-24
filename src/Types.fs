@@ -8,8 +8,9 @@ type CourtNo =
     | Court3
 
 type Blocking = {
-     Description: string
-     Courts: CourtNo list
-     Date: DateOnly
-     StartEnd: (TimeOnly * TimeOnly) option
+    Description: string
+    Courts: CourtNo list
+    Date: DateOnly
+    StartEnd: (TimeOnly * TimeOnly) option
+    Note: string
 }

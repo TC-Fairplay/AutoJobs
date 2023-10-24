@@ -9,6 +9,7 @@ module private Testing =
         Courts = [Court1; Court2; Court3]
         Date = DateOnly(2023, 10, 9)
         StartEnd = Some (TimeOnly(8, 0), TimeOnly(9, 0))
+        Note = ""
     }
 
     let ManualTest (gotCourtsClient: HttpClient) =

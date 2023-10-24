@@ -73,7 +73,7 @@ module GotCourts =
             "autoremove", "true"
             "type", "other"
             "description", blocking.Description
-            "note", sprintf "Auto-created at %s." (formatTimeStamp ())
+            "note", blocking.Note
         ]
 
     let createBlocking (client: HttpClient) (blocking: Blocking): Guid list =

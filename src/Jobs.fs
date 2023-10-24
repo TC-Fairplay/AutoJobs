@@ -50,6 +50,7 @@ module Jobs =
                     Courts = allCourts
                     Date = tomorrow
                     StartEnd = startEnd
+                    Note = sprintf "Auto-created at %s." (formatTimeStamp ())
                 }
                 let guids = GotCourts.createBlocking gotCourtsClient blocking
 
