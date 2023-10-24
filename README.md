@@ -3,7 +3,7 @@
 Automatic jobs to be run in regular intervals, written in F#.
 The program needs to be hosted on a server supporting .NET console applications.
 
-All available jobs are listed in [Jobs.fs](src/Jobs.fs)
+All implemented jobs are listed in [Jobs.fs](src/Jobs.fs)
 
 ## Ground Frost ❄️
 
