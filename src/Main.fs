@@ -37,4 +37,11 @@ module Main =
         else
             use gotCourtsClient = GotCourts.createClient authData
             Jobs.groundFrostCheck gotCourtsClient
+
+            (*
+            if args.Length > 0 then
+                let date = DateOnly.ParseExact(args[0], "yyyy-MM-dd")
+                GotCourts.loadBlockings gotCourtsClient date |> List.iter (printfn "%A")
+            *)
+
             0

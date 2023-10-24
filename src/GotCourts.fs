@@ -31,14 +31,20 @@ module GotCourts =
         client
 
     module private Api =
-        let private dateFormat = "{0}-{1}-{2}"
+        let private dateFormat = "yyyy-MM-dd"
 
         let formatDate (date: DateOnly): string =
-            String.Format(dateFormat, date.Year, date.Month, date.Day)
+            date.ToString(dateFormat)
+
+        let parseDate (s: string): DateOnly =
+            DateOnly.ParseExact(s, dateFormat)
 
         let formatTime (time: TimeOnly): string =
             (time.Hour * 60 + time.Minute) * 60
             |> string
+
+        let calcTime (secondsSinceMidnight: int): TimeOnly =
+            TimeOnly(int64 secondsSinceMidnight * 10_000_000L)
 
     let private toKeyValuePair (x, y) = KeyValuePair(x, y)
 
@@ -48,6 +54,12 @@ module GotCourts =
         | Court1 -> 8153
         | Court2 -> 8154
         | Court3 -> 8155
+
+    let private idToCourt = function
+        | 8153 -> Court1
+        | 8154 -> Court2
+        | 8155 -> Court3
+        | id -> failwithf "Unknown court id '%d." id
 
     let private buildBlockingPairs (blocking: Blocking): (string * string) list =
         let toCourtPair no = ("courts[]", no |> courtToId |> string)
@@ -96,3 +108,31 @@ module GotCourts =
         use reqMsg = new HttpRequestMessage (HttpMethod.Delete, url)
         use respMsg = client.Send(reqMsg)
         ()
+
+    let loadBlockings (client: HttpClient) (date: DateOnly): (Guid * Blocking) list =
+        let url = String.Format(listUrlTemplate, clubId, Api.formatDate date)
+        let rawJson = client.GetStringAsync(url) |> await
+
+        use doc = JsonDocument.Parse rawJson
+        let resp = doc.RootElement.GetProperty "response"
+        let blockings = resp.GetProperty "blockings"
+
+        let parseBlocking (el: JsonElement): (Guid * Blocking) =
+            let get (name: string) = el.GetProperty name
+            let getString name = (get name).GetString()
+            let getInt name = (get name).GetInt32()
+            let getTime = getInt >> Api.calcTime
+
+            let guid = Guid.Parse (getString "id")
+            let blocking = {
+                Description = (getString "shortDesc")
+                Courts = [getInt "courtId" |> idToCourt]
+                Date = date
+                StartEnd = Some (getTime "startTime", getTime "endTime")
+                Note = getString "note"
+            }
+            (guid, blocking)
+
+        blockings.EnumerateArray ()
+        |> Seq.map parseBlocking
+        |> Seq.toList
