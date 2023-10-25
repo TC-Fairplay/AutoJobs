@@ -4,6 +4,12 @@ open System
 open System.Net.Http
 
 module Jobs =
+    let private nightHoursRange = (22, 8)
+    let private minNightTempLimit = 0.0
+
+    let private dayHoursRange = (8, 16)
+    let private minDayTempLimit = 5.0
+
     let private allCourts = [Court1; Court2; Court3]
     let private morning = TimeOnly(8, 0)
     let private noon = TimeOnly(12, 0)
@@ -19,23 +25,23 @@ module Jobs =
         printfn "⛅ done."
 
         let minTemp =
-            // from today 22.00 until tomorrow 8.00
-            temps[22..(24 + 8)]
+            temps[fst nightHoursRange..snd nightHoursRange + 24]
             |> List.min
 
-        if minTemp <= 0.0 then
-            printfn "❄️ Danger of ground frost, temperatur will drop below 0° C in the coming night."
+        if minTemp <= minNightTempLimit then
+            printfn "❄️ Danger of ground frost, temperatur will drop to %2.1f° C in the coming night." minTemp
             let tomorrow =
                 now.AddDays (1.0)
                 |> DateOnly.FromDateTime
 
-            let maxTemp =
-                // tomorrow from 8.00 until 16.00
-                temps[(24 + 8)..(24 + 16)]
+            let tomorrowTemps = temps |> List.skip 24 |> List.take 24
+
+            let maxTempTomorrow =
+                tomorrowTemps[fst dayHoursRange..snd dayHoursRange]
                 |> List.max
 
             let startEnd, endTime =
-                if maxTemp > 5.0 then
+                if maxTempTomorrow > minDayTempLimit then
                     printfn "☀️ Temperature will raise above 5° C tomorrow."
                     Some (morning, noon), "until noon"
                 else
