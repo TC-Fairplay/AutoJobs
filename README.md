@@ -1,5 +1,8 @@
 # Automatic Jobs
 
+![Build Status](https://github.com/TC-Fairplay/AutoJobs/actions/workflows/build.yml/badge.svg)
+![Run Status](https://github.com/TC-Fairplay/AutoJobs/actions/workflows/run.yml/badge.svg)
+
 Automatic jobs to be run in regular intervals, written in F#.
 The program needs to be hosted on a server supporting .NET console applications.
 
