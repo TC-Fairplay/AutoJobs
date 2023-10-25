@@ -1,0 +1,22 @@
+name: Run
+
+on: workflow_dispatch
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '7.x'
+    - name: Install dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build
+    - name: Run
+      env:
+        GOTCOURTS_API_KEY: ${{ secrets.GOTCOURTS_API_KEY }}
+        GOTCOURTS_PHP_SESSION_ID: ${{ secrets.GOTCOURTS_PHP_SESSION_ID }}
+      run: dotnet run
