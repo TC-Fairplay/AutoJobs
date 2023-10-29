@@ -20,5 +20,5 @@ If the temperature **rises above 5 degrees** during the day, the blocking stops 
 
 ### External Services
 
-* The weather prognosis is fetched from [MeteoSwiss](https://www.meteoswiss.admin.ch) (see [MeteoSwiss.fs](src/MeteoSwiss.fs)).
-* Tennis courts are blocked using the [GotCourts](https://www.gotcourts.com) API (admin credentials are needed, see [GotCourts.fs](src/GotCourts.fs)).
+* The weather prognosis is fetched from [MeteoSwiss](https://www.meteoswiss.admin.ch) (see [docs](docs/meteoswiss-api.md) and [code](src/MeteoSwiss.fs)).
+* Tennis courts are blocked using the [GotCourts](https://www.gotcourts.com) API (admin credentials are needed, see [docs](docs/gotcourts-api.md) and [code](src/GotCourts.fs)).
