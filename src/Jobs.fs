@@ -4,6 +4,8 @@ open System
 open System.Net.Http
 
 module Jobs =
+    let private postalCode = "8057"
+
     let private nightHoursRange = (22, 8)
     let private minNightTempLimit = 0.0
 
@@ -20,8 +22,8 @@ module Jobs =
         printfn "🎾 Starting job '❆ Ground Frost ❆' (%s)." (formatTimeStamp ())
 
         // MeteoSwiss temperature prognosis
-        printfn "⛅ Fetching weather prognosis from MeteoSwiss."
-        let temps = MeteoSwiss.getTemperaturePrognosis ()
+        printfn "⛅ Fetching weather prognosis from MeteoSwiss for postal code %s." postalCode
+        let temps = MeteoSwiss.getTemperaturePrognosis postalCode
         printfn "⛅ done."
 
         let minTemp =

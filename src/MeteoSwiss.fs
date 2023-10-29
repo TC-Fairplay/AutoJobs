@@ -1,18 +1,18 @@
 namespace TcFairplay
 
+open System
 open System.Net.Http
 open System.Text.Json
 
 module MeteoSwiss =
-    let private postalCode = "8057"
+    let private weatherPrognosisUrlTemplate =
+        "https://app-prod-ws.meteoswiss-app.ch/v1/plzDetail?plz={0}00"
 
-    // prognosis for 144h, starting today at 0.00.
-    let private weatherPrognosisUrl =
-        sprintf "https://app-prod-ws.meteoswiss-app.ch/v1/plzDetail?plz=%s00" postalCode
-
-    let getTemperaturePrognosis (): float list =
+    // Get temperature prognosis for the next 4 days (144h), starting today at 0.00.
+    let getTemperaturePrognosis (postalCode: string): float list =
         use client = new HttpClient()
-        let rawJson = client.GetStringAsync weatherPrognosisUrl |> await
+        let url = String.Format(weatherPrognosisUrlTemplate, postalCode)
+        let rawJson = client.GetStringAsync url |> await
 
         use doc = JsonDocument.Parse rawJson
         let graph = doc.RootElement.GetProperty "graph"
