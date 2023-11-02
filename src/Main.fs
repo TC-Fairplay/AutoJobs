@@ -3,19 +3,6 @@ namespace TcFairplay
 open System
 open System.Net.Http
 
-module private Testing =
-    let blocking = {
-        Description = "Automatisch erstellte Test-Sperre."
-        Courts = [Court1; Court2; Court3]
-        Date = DateOnly(2023, 10, 9)
-        StartEnd = Some (TimeOnly(8, 0), TimeOnly(9, 0))
-        Note = ""
-    }
-
-    let ManualTest (gotCourtsClient: HttpClient) =
-        let guids = GotCourts.createBlocking gotCourtsClient blocking
-        guids |> List.iter (GotCourts.deleteBlocking gotCourtsClient)
-
 module Main =
     let private apiKeyName = "GOTCOURTS_API_KEY"
     let private phpSessionIdName = "GOTCOURTS_PHP_SESSION_ID"
