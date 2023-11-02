@@ -17,9 +17,33 @@ module Jobs =
     let private noon = TimeOnly(12, 0)
     let private groundFrostBlockingTitle = "❄️❄️❄️ Bodenfrost (automatische Sperre) ❄️❄️❄️"
 
-    let groundFrostCheck (gotCourtsClient: HttpClient): unit =
+    let private blockCourts (gotCourtsClient: HttpClient) (blocking: Blocking): Result<unit, GotCourtsError> =
+        let blocking = {
+            blocking with Note = sprintf "Auto-created at %s." (formatCurrentTimeStamp ())
+        }
+
+        let timeWindow =
+            let toStr (t: TimeOnly) = t.ToString("HH:mm")
+            match blocking.StartEnd with
+            | Some (s, e) -> sprintf "from %s until%s" (toStr s) (toStr e)
+            | None -> "for the entire day"
+
+        // GotCourts blocking
+        printfn "⛔ Blocking all courts tomorrow %s on GotCourts." timeWindow
+        match GotCourts.createBlocking gotCourtsClient blocking with
+        | Ok guids ->
+            guids |> List.iter (printfn "  ⛔ Blocking ID: %A")
+            printfn "⛔ done."
+            Ok ()
+
+        | Error text ->
+            printfn "💥 GotCourt blocking failed."
+            printfn "💥 Info: %s" text
+            Error text
+
+    let groundFrostCheck (gotCourtsClient: HttpClient): Result<unit, GotCourtsError> =
         let now = DateTime.Now
-        printfn "🎾 Starting job '❆ Ground Frost ❆' (%s)." (formatTimeStamp ())
+        printfn "🎾 Starting job '❆ Ground Frost ❆' (%s)." (formatCurrentTimeStamp ())
 
         // MeteoSwiss temperature prognosis
         printfn "⛅ Fetching weather prognosis from MeteoSwiss for postal code %s." postalCode
@@ -30,48 +54,42 @@ module Jobs =
             temps[fst nightHoursRange..snd nightHoursRange + 24]
             |> List.min
 
-        if minTemp <= minNightTempLimit then
-            printfn "❄️ Danger of ground frost, temperatur will drop to %2.1f° C in the coming night." minTemp
-            let tomorrow =
-                now.AddDays (1.0)
-                |> DateOnly.FromDateTime
+        let result =
+            if minTemp <= minNightTempLimit then
+                printfn "❄️ Danger of ground frost, temperatur will drop to %2.1f° C in the coming night." minTemp
+                let tomorrow =
+                    now.AddDays (1.0)
+                    |> DateOnly.FromDateTime
 
-            let tomorrowTemps = temps |> List.skip 24 |> List.take 24
+                // skip today, take tomorrow
+                let tomorrowTemps = temps |> List.skip 24 |> List.take 24
 
-            let maxTempTomorrow =
-                tomorrowTemps[fst dayHoursRange..snd dayHoursRange]
-                |> List.max
+                let maxTempTomorrow =
+                    tomorrowTemps[fst dayHoursRange..snd dayHoursRange]
+                    |> List.max
 
-            let startEnd, endTime =
-                if maxTempTomorrow > minDayTempLimit then
-                    printfn "☀️ Temperature will raise above 5° C tomorrow."
-                    Some (morning, noon), "until noon"
-                else
-                    printfn "⛄ Temperature will stay below 5° C tomorrow."
-                    None, ""
+                let startEnd =
+                    if maxTempTomorrow > minDayTempLimit then
+                        printfn "☀️ Temperature will raise above 5° C tomorrow."
+                        Some (morning, noon)
+                    else
+                        printfn "⛄ Temperature will stay below 5° C tomorrow."
+                        None
 
-            // GotCourts blocking
-            printfn "⛔ Blocking all courts tomorrow %s on GotCourts." endTime
-            try
                 let blocking = {
                     Description = groundFrostBlockingTitle
                     Courts = allCourts
                     Date = tomorrow
                     StartEnd = startEnd
-                    Note = sprintf "Auto-created at %s." (formatTimeStamp ())
+                    Note = ""
                 }
-                let guids = GotCourts.createBlocking gotCourtsClient blocking
+                blockCourts gotCourtsClient blocking
 
-                guids |> List.iter (printfn "  ⛔ Blocking ID: %A")
-                printfn "⛔ done."
-                ()
-            with
-                | exn ->
-                    printfn "💥 GotCourt blocking failed."
-                    printfn "💥 Info: %A" exn
+            else
+                printfn "✅ All good, minimum temperature in the coming night: %2.1f° C." minTemp
+                Ok ()
 
-        else
-            printfn "✅ All good, minimum temperature in the coming night: %2.1f° C." minTemp
-
-        printfn "🎾 Finished job '❆ Ground Frost ❆' (%s)." (formatTimeStamp ())
+        printfn "🎾 Finished job '❆ Ground Frost ❆' (%s)." (formatCurrentTimeStamp ())
         printfn ""
+
+        result

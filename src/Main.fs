@@ -35,13 +35,12 @@ module Main =
             printfn "💥 Please set environment variables '%s' and '%s'." apiKeyName phpSessionIdName
             1
         else
-            use gotCourtsClient = GotCourts.createClient authData
-            Jobs.groundFrostCheck gotCourtsClient
+            try
+                use gotCourtsClient = GotCourts.createClient authData
+                let res = Jobs.groundFrostCheck gotCourtsClient
+                if Result.isOk res then 0 else 1
 
-            (*
-            if args.Length > 0 then
-                let date = DateOnly.ParseExact(args[0], "yyyy-MM-dd")
-                GotCourts.loadBlockings gotCourtsClient date |> List.iter (printfn "%A")
-            *)
-
-            0
+            with
+            | exn ->
+                printfn "💥 Exception thrown: %A." exn
+                1

@@ -9,5 +9,5 @@ module Utils =
     let formatDateTime (dt: DateTime): string =
         dt.ToString("yyyy-MM-dd HH:mm:ss")
 
-    let formatTimeStamp (): string =
+    let formatCurrentTimeStamp (): string =
         formatDateTime (DateTime.Now)
