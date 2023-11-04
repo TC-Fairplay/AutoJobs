@@ -25,7 +25,7 @@ module Jobs =
         let timeWindow =
             let toStr (t: TimeOnly) = t.ToString("HH:mm")
             match blocking.StartEnd with
-            | Some (s, e) -> sprintf "from %s until%s" (toStr s) (toStr e)
+            | Some (s, e) -> sprintf "from %s until %s" (toStr s) (toStr e)
             | None -> "for the entire day"
 
         // GotCourts blocking
@@ -37,8 +37,8 @@ module Jobs =
             Ok ()
 
         | Error text ->
-            printfn "💥 GotCourt blocking failed."
-            printfn "💥 Info: %s" text
+            printfn "⛔ 💥 GotCourt blocking failed."
+            printfn "⛔ 💥 Info: %s" text
             Error text
 
     let groundFrostCheck (gotCourtsClient: HttpClient): Result<unit, GotCourtsError> =
