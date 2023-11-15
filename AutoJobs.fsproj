@@ -4,7 +4,7 @@
     <AssemblyCompany>TC Fairplay</AssemblyCompany>
     <AssemblyProduct>Automatic Jobs</AssemblyProduct>
     <Version>0.9.0</Version>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <OutputType>Exe</OutputType>
     <SatelliteResourceLanguages>en-US</SatelliteResourceLanguages>
   </PropertyGroup>
