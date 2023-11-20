@@ -14,6 +14,7 @@
     <Compile Include="src/MeteoSwiss.fs" />
     <Compile Include="src/GotCourts.fs" />
     <Compile Include="src/Logger.fs" />
+    <Compile Include="src/Ntfy.fs " />
     <Compile Include="src/Jobs.fs" />
     <Compile Include="src/Main.fs" />
   </ItemGroup>

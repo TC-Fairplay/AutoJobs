@@ -1,35 +1,43 @@
 namespace TcFairplay
 
 open System
-open System.Net.Http
 
 module Main =
     let private apiKeyName = "GOTCOURTS_API_KEY"
     let private phpSessionIdName = "GOTCOURTS_PHP_SESSION_ID"
+    let private ntfyTopicName = "NTFY_TOPIC"
 
-    let getAuthDataFromEnvironment () =
+    type Secrets = {
+        GotCourts: AuthData
+        NtfyTopic: string
+    }
+
+    let getSecretsFromEnvironment () =
         let get = Environment.GetEnvironmentVariable
         {
-            ApiKey = get apiKeyName
-            PhpSessionId = get phpSessionIdName
+            GotCourts = {
+                ApiKey = get apiKeyName
+                PhpSessionId = get phpSessionIdName
+            }
+            NtfyTopic = get ntfyTopicName
         }
 
     [<EntryPoint>]
     let main (args: string[]): int =
-        let authData = getAuthDataFromEnvironment ()
+        let secrets = getSecretsFromEnvironment ()
 
         let log = Logger.createMultiLogger [
             Logger.createConsoleLogger ()
-            Logger.createNtfyLogger ""
+            Logger.createStringLogger (Ntfy.post secrets.NtfyTopic)
         ]
 
         let result =
-            if isNull authData.ApiKey || isNull authData.PhpSessionId then
+            if isNull secrets.GotCourts.ApiKey || isNull secrets.GotCourts.PhpSessionId then
                 log.Write (Error, "💥", sprintf "Please set environment variables '%s' and '%s'." apiKeyName phpSessionIdName)
                 1
             else
                 try
-                    use gotCourtsClient = GotCourts.createClient authData
+                    use gotCourtsClient = GotCourts.createClient secrets.GotCourts
                     let res = Jobs.groundFrostCheck log gotCourtsClient
                     if Result.isOk res then 0 else 1
 

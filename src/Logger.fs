@@ -48,15 +48,11 @@ module Logger =
     let createConsoleLogger (): Logger =
         createSimpleLogger ((fun s -> Console.WriteLine(s)), ignore)
 
-    // create a logger that collects all logged records and POSTs the text to nfty.sh.
-    let createNtfyLogger (topic: string): Logger =
+    // create a logger that collects all logged records and POSTs the text to ntfy.sh.
+    let createStringLogger (processResult: string -> unit): Logger =
         let sb = StringBuilder()
-        let close () =
-            let log = sb.ToString()
-            Console.Write(log) // FIXME: testing only
-            // POST to nfty.sh
-
-        createSimpleLogger ((fun s -> sb.AppendFormat("|Nfty|{0}\n", s) |> ignore), close)
+        let close () = sb.ToString() |> processResult
+        createSimpleLogger ((fun s -> sb.AppendFormat("{0}\n", s) |> ignore), close)
 
     // create a logger that distributes its inputs to a list of loggers.
     let createMultiLogger (loggers: Logger list): Logger =
