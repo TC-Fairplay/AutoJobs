@@ -18,16 +18,26 @@ module Main =
     let main (args: string[]): int =
         let authData = getAuthDataFromEnvironment ()
 
-        if isNull authData.ApiKey || isNull authData.PhpSessionId then
-            printfn "💥 Please set environment variables '%s' and '%s'." apiKeyName phpSessionIdName
-            1
-        else
-            try
-                use gotCourtsClient = GotCourts.createClient authData
-                let res = Jobs.groundFrostCheck gotCourtsClient
-                if Result.isOk res then 0 else 1
+        let log = Logger.createMultiLogger [
+            Logger.createConsoleLogger ()
+            Logger.createNtfyLogger ""
+        ]
 
-            with
-            | exn ->
-                printfn "💥 Exception thrown: %A." exn
+        let result =
+            if isNull authData.ApiKey || isNull authData.PhpSessionId then
+                log.Write (Error, "💥", sprintf "Please set environment variables '%s' and '%s'." apiKeyName phpSessionIdName)
                 1
+            else
+                try
+                    use gotCourtsClient = GotCourts.createClient authData
+                    let res = Jobs.groundFrostCheck log gotCourtsClient
+                    if Result.isOk res then 0 else 1
+
+                with
+                | exn ->
+                    log.Write (Error, "💥", sprintf "Exception thrown: %A." exn)
+                    1
+
+        log.Close ()
+
+        result

@@ -17,7 +17,7 @@ module Jobs =
     let private noon = TimeOnly(12, 0)
     let private groundFrostBlockingTitle = "❄️❄️❄️ Bodenfrost (automatische Sperre) ❄️❄️❄️"
 
-    let private blockCourts (gotCourtsClient: HttpClient) (blocking: Blocking): Result<unit, GotCourtsError> =
+    let private blockCourts (log: Logger) (gotCourtsClient: HttpClient) (blocking: Blocking): Result<unit, GotCourtsError> =
         let blocking = {
             blocking with Note = sprintf "Auto-created at %s." (formatCurrentTimeStamp ())
         }
@@ -29,26 +29,34 @@ module Jobs =
             | None -> "for the entire day"
 
         // GotCourts blocking
-        printfn "⛔ Blocking all courts tomorrow %s on GotCourts." timeWindow
-        match GotCourts.createBlocking gotCourtsClient blocking with
-        | Ok guids ->
-            guids |> List.iter (printfn "  ⛔ Blocking ID: %A")
-            printfn "⛔ done."
-            Ok ()
+        log.Write (Warn, "⛔", sprintf "Blocking all courts tomorrow %s on GotCourts." timeWindow)
+        log.StartBlock ()
 
-        | Error text ->
-            printfn "⛔ 💥 GotCourt blocking failed."
-            printfn "⛔ 💥 Info: %s" text
-            Error text
+        let result =
+            match GotCourts.createBlocking gotCourtsClient blocking with
+            | Ok guids ->
+                guids |> List.iter (fun guid -> log.Write (Warn, "⛔", sprintf "Blocking ID: %A" guid))
+                Ok ()
 
-    let groundFrostCheck (gotCourtsClient: HttpClient): Result<unit, GotCourtsError> =
+            | Result.Error text ->
+                log.Write (Error, "💥", "GotCourt blocking failed.")
+                log.Write (Error, "💥", sprintf "Info: %s" text)
+                Result.Error text
+
+        log.EndBlock ()
+
+        result
+
+    let groundFrostCheck (log: Logger) (gotCourtsClient: HttpClient): Result<unit, GotCourtsError> =
         let now = DateTime.Now
-        printfn "🎾 Starting job '❆ Ground Frost ❆' (%s)." (formatCurrentTimeStamp ())
+        log.Write (Info, "🎾", "Starting job '❆ Ground Frost ❆'.")
+        log.StartBlock ()
 
         // MeteoSwiss temperature prognosis
-        printfn "⛅ Fetching weather prognosis from MeteoSwiss for postal code %s." postalCode
+        log.Write (Info, "⛅", sprintf "Fetching weather prognosis from MeteoSwiss for postal code %s." postalCode)
+        log.StartBlock()
         let temps = MeteoSwiss.getTemperaturePrognosis postalCode
-        printfn "⛅ done."
+        log.EndBlock()
 
         let minTemp =
             temps[fst nightHoursRange..snd nightHoursRange + 24]
@@ -56,7 +64,8 @@ module Jobs =
 
         let result =
             if minTemp <= minNightTempLimit then
-                printfn "❄️ Danger of ground frost, temperatur will drop to %2.1f° C in the coming night." minTemp
+                log.Write (Warn, "❄️", sprintf "Danger of ground frost, temperatur will drop to %2.1f° C in the coming night." minTemp)
+                log.StartBlock ()
                 let tomorrow =
                     now.AddDays (1.0)
                     |> DateOnly.FromDateTime
@@ -70,10 +79,10 @@ module Jobs =
 
                 let startEnd =
                     if maxTempTomorrow > minDayTempLimit then
-                        printfn "☀️ Temperature will raise above 5° C tomorrow."
+                        log.Write (Info, "☀️", "Temperature will raise above 5° C tomorrow.")
                         Some (morning, noon)
                     else
-                        printfn "⛄ Temperature will stay below 5° C tomorrow."
+                        log.Write (Warn, "⛄", "Temperature will stay below 5° C tomorrow.")
                         None
 
                 let blocking = {
@@ -83,13 +92,15 @@ module Jobs =
                     StartEnd = startEnd
                     Note = ""
                 }
-                blockCourts gotCourtsClient blocking
+                let result = blockCourts log gotCourtsClient blocking
+
+                log.EndBlock ()
+                result
 
             else
-                printfn "✅ All good, minimum temperature in the coming night: %2.1f° C." minTemp
+                log.Write (Info, "✅", sprintf"All good, minimum temperature in the coming night: %2.1f° C." minTemp)
                 Ok ()
 
-        printfn "🎾 Finished job '❆ Ground Frost ❆' (%s)." (formatCurrentTimeStamp ())
-        printfn ""
+        log.EndBlock ()
 
         result
