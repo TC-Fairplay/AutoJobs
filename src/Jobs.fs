@@ -48,7 +48,7 @@ module Jobs =
         result
 
     let groundFrostCheck (log: Logger) (gotCourtsClient: HttpClient): Result<unit, GotCourtsError> =
-        let now = DateTime.Now
+        let now = currentLocalTime ()
         log.Write (Info, "🎾", "Starting job '❆ Ground Frost ❆'.")
         log.StartBlock ()
 
