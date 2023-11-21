@@ -27,14 +27,19 @@ module Main =
         let secrets = getSecretsFromEnvironment ()
 
         let result =
-            if isNull secrets.GotCourts.ApiKey || isNull secrets.GotCourts.PhpSessionId || isNull secrets.NtfyTopic then
+            if isNull secrets.GotCourts.ApiKey || isNull secrets.GotCourts.PhpSessionId then
                 printfn "💥 Please set environment variables '%s', '%s', and '%s'." apiKeyName phpSessionIdName ntfyTopicName
                 1
             else
-                let log = Logger.createMultiLogger [
-                    Logger.createConsoleLogger ()
-                    Logger.createStringLogger (Ntfy.post secrets.NtfyTopic)
-                ]
+                let consoleLogger = Logger.createConsoleLogger ()
+                let log =
+                    if String.IsNullOrEmpty(secrets.NtfyTopic) then
+                        consoleLogger
+                    else
+                        Logger.createMultiLogger [
+                            consoleLogger
+                            Logger.createStringLogger (Ntfy.post secrets.NtfyTopic)
+                        ]
 
                 try
                     try
