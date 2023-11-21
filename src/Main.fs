@@ -26,26 +26,28 @@ module Main =
     let main (args: string[]): int =
         let secrets = getSecretsFromEnvironment ()
 
-        let log = Logger.createMultiLogger [
-            Logger.createConsoleLogger ()
-            Logger.createStringLogger (Ntfy.post secrets.NtfyTopic)
-        ]
-
         let result =
-            if isNull secrets.GotCourts.ApiKey || isNull secrets.GotCourts.PhpSessionId then
-                log.Write (Error, "💥", sprintf "Please set environment variables '%s' and '%s'." apiKeyName phpSessionIdName)
+            if isNull secrets.GotCourts.ApiKey || isNull secrets.GotCourts.PhpSessionId || isNull secrets.NtfyTopic then
+                printfn "💥 Please set environment variables '%s', '%s', and '%s'." apiKeyName phpSessionIdName ntfyTopicName
                 1
             else
+                let log = Logger.createMultiLogger [
+                    Logger.createConsoleLogger ()
+                    Logger.createStringLogger (Ntfy.post secrets.NtfyTopic)
+                ]
+
                 try
-                    use gotCourtsClient = GotCourts.createClient secrets.GotCourts
-                    let res = Jobs.groundFrostCheck log gotCourtsClient
-                    if Result.isOk res then 0 else 1
+                    try
+                        use gotCourtsClient = GotCourts.createClient secrets.GotCourts
+                        let res = Jobs.groundFrostCheck log gotCourtsClient
+                        if Result.isOk res then 0 else 1
 
-                with
-                | exn ->
-                    log.Write (Error, "💥", sprintf "Exception thrown: %A." exn)
-                    1
+                    with
+                    | exn ->
+                        log.Write (Error, "💥", sprintf "Exception thrown: %A." exn)
+                        1
 
-        log.Close ()
+                finally
+                    log.Close ()
 
         result

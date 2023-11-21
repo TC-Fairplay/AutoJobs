@@ -1,5 +1,6 @@
 namespace TcFairplay
 
+open System.Net
 open System.Net.Http
 
 module Ntfy =
@@ -14,5 +15,10 @@ module Ntfy =
         printfn "Posting text to ntfy.sh."
         let resp = client.PostAsync(url, sc) |> await
 
-        printfn "StatusCode: %A" resp.StatusCode
+        if resp.StatusCode <> HttpStatusCode.OK then
+            printfn "Error! Reason: %s" resp.ReasonPhrase
+            printfn "Length of topic name: %d chars." topic.Length
+        else
+            printfn "OK."
+
         ()
