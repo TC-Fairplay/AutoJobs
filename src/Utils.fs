@@ -8,11 +8,11 @@ module Utils =
 
     let private chTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Zurich")
 
-    let currentLocalTime () =
+    let currentChTime () =
         TimeZoneInfo.ConvertTime(DateTime.Now, chTimeZone)
 
     let formatDateTime (dt: DateTime): string =
         dt.ToString("yyyy-MM-dd HH:mm:ss")
 
     let formatCurrentTimeStamp (): string =
-        formatDateTime (currentLocalTime ())
+        formatDateTime (currentChTime ())
