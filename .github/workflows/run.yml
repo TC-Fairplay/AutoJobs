@@ -22,4 +22,5 @@ jobs:
       env:
         GOTCOURTS_API_KEY: ${{ secrets.GOTCOURTS_API_KEY }}
         GOTCOURTS_PHP_SESSION_ID: ${{ secrets.GOTCOURTS_PHP_SESSION_ID }}
+        NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
       run: dotnet run
