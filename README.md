@@ -16,7 +16,7 @@ Checks weather prognosis for the upcoming night. If temperatures **drop below ze
 
 ### Blocking Duration
 
-If the temperature **rises above 5 degrees** during the day, the blocking stops at noon, otherwise it covers the entire day.
+If the temperature **rises above 3 degrees** during the day, the blocking stops at noon, otherwise it covers the entire day.
 
 ### External Services
 

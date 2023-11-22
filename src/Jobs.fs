@@ -10,7 +10,7 @@ module Jobs =
     let private minNightTempLimit = 0.0
 
     let private dayHoursRange = (8, 16)
-    let private minDayTempLimit = 5.0
+    let private minDayTempLimit = 3.0
 
     let private allCourts = [Court1; Court2; Court3]
     let private morning = TimeOnly(8, 0)
