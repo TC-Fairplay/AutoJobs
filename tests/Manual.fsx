@@ -1,15 +1,15 @@
-#r "bin/Debug/net7.0/AutoJobs.dll"
+#r "bin/Debug/net8.0/AutoJobs.dll"
 
 open System
 open TcFairplay
 
-let auth = Main.getAuthDataFromEnvironment ()
-let client = GotCourts.createClient auth
+let secrets = Main.getSecretsFromEnvironment ()
+let client = GotCourts.createClient secrets.GotCourts
 
 let buildStartEnd startHour endHour =
     (TimeOnly(startHour, 0), TimeOnly(endHour, 0))
 
-let date = DateOnly(2023, 11, 2)
+let date = DateOnly(2023, 11, 22)
 let buildBlocking startEnd = {
     Description = "Test"
     Courts = [Court1]
