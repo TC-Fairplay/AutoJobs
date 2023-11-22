@@ -28,7 +28,7 @@ module Main =
 
         let result =
             if isNull secrets.GotCourts.ApiKey || isNull secrets.GotCourts.PhpSessionId then
-                printfn "💥 Please set environment variables '%s', '%s', and '%s'." apiKeyName phpSessionIdName ntfyTopicName
+                printfn "💥 Please set environment variables '%s' and '%s'." apiKeyName phpSessionIdName
                 1
             else
                 let consoleLogger = Logger.createConsoleLogger ()
