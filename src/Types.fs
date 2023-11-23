@@ -19,23 +19,19 @@ type PlayerId = PlayerId of int
 type ReservationOwner = Player | Club
 
 type Reservation = {
+    Owner: ReservationOwner
     Players: PlayerId list
     Court: CourtNo
     Date: DateOnly
-    StartEnd: (TimeOnly * TimeOnly) option
+    StartEnd: (TimeOnly * TimeOnly)
     BallMachine: bool
-    Owner: ReservationOwner
-}
-
-type Validated<'T> = {
-    IsValidated: bool
-    Value: 'T
+    Note: string
 }
 
 type Player = {
     Id: PlayerId
     LastName: string
     FirstName: string
-    Email: Validated<string> option
-    Phone: Validated<string> option
+    Email: string option
+    Phone: string option
 }
