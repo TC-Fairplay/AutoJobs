@@ -11,6 +11,7 @@
   <ItemGroup>
     <Compile Include="src/Utils.fs" />
     <Compile Include="src/Types.fs" />
+    <Compile Include="src/Codec.fs" />
     <Compile Include="src/MeteoSwiss.fs" />
     <Compile Include="src/GotCourts.fs" />
     <Compile Include="src/Logger.fs" />

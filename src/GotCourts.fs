@@ -38,57 +38,9 @@ module GotCourts =
         let formatDate (date: DateOnly): string =
             date.ToString(dateFormat)
 
-        let parseDate (s: string): DateOnly =
-            DateOnly.ParseExact(s, dateFormat)
-
-        let formatTime (time: TimeOnly): string =
-            (time.Hour * 60 + time.Minute) * 60
-            |> string
-
-        let calcTime (secondsSinceMidnight: int): TimeOnly =
-            TimeOnly(int64 secondsSinceMidnight * 10_000_000L)
-
     let private toKeyValuePair (x, y) = KeyValuePair(x, y)
 
     let private clubId = 53223
-
-    let private courtToId = function
-        | Court1 -> 8153
-        | Court2 -> 8154
-        | Court3 -> 8155
-
-    let private idToCourt = function
-        | 8153 -> Court1
-        | 8154 -> Court2
-        | 8155 -> Court3
-        | id -> failwithf "Unknown court id '%d." id
-
-    let private buildBlockingPairs (blocking: Blocking): (string * string) list =
-        let toCourtPair no = ("courts[]", no |> courtToId |> string)
-        let dateTimePairs =
-            let timePairs =
-                match blocking.StartEnd with
-                | Some (s, e) -> [
-                        "time[start]", Api.formatTime s
-                        "time[end]", Api.formatTime e
-                    ]
-                | None -> []
-
-            let date = Api.formatDate blocking.Date
-            [
-                "date", date
-                "dateTo", date
-                "allDay[disabled]", (blocking.StartEnd |> Option.isSome |> string |> fun s -> s.ToLower())
-            ] @ timePairs
-
-        dateTimePairs @
-        (blocking.Courts |> List.map toCourtPair) @
-        [
-            "autoremove", "true"
-            "type", "other"
-            "description", blocking.Description
-            "note", blocking.Note
-        ]
 
     let processResponse (rawJson: string): Result<JsonElement, GotCourtsError> =
         let doc = JsonDocument.Parse rawJson
@@ -102,7 +54,7 @@ module GotCourts =
             Error errorText
 
     let createBlocking (client: HttpClient) (blocking: Blocking): Result<Guid list, GotCourtsError> =
-        let pairs = buildBlockingPairs blocking
+        let pairs = Blocking.toKeyValueMap blocking
         use content = new FormUrlEncodedContent(pairs |> List.map toKeyValuePair)
 
         let respMsg = client.PostAsync (blockingUrl, content) |> await
@@ -134,24 +86,8 @@ module GotCourts =
         let getBlockings (resp: JsonElement) =
             let blockings = resp.GetProperty "blockings"
 
-            let parseBlocking (el: JsonElement): (Guid * Blocking) =
-                let get (name: string) = el.GetProperty name
-                let getString name = (get name).GetString()
-                let getInt name = (get name).GetInt32()
-                let getTime = getInt >> Api.calcTime
-
-                let guid = Guid.Parse (getString "id")
-                let blocking = {
-                    Description = (getString "shortDesc")
-                    Courts = [getInt "courtId" |> idToCourt]
-                    Date = date
-                    StartEnd = Some (getTime "startTime", getTime "endTime")
-                    Note = getString "note"
-                }
-                (guid, blocking)
-
             blockings.EnumerateArray ()
-            |> Seq.map parseBlocking
+            |> Seq.map Blocking.parse
             |> Seq.toList
 
         processResponse rawJson
