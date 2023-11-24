@@ -25,6 +25,7 @@ module GotCourts =
     // blockings path: /response/blockings/[]
     // path contains object with id, courtId, startTime, endTime, shortDesc, type, note.
     let private listUrlTemplate = baseUrl + "/de/api/secured/club/reservation/list?clubId={0}&date={1}"
+    let private playersUrlTemplate = baseUrl + "/de/api/secured/club/players?page=1&perPage=500&category={0}"
 
     let private apiKeyHeader = "X-GOTCOURTS", "ApiKey=\"{0}\""
     let private cookieHeader = "Cookie", "PHPSESSID={0}"
@@ -48,6 +49,8 @@ module GotCourts =
 
     let private clubId = 53223
 
+    let private allMembersCategory = 7515
+
     let processResponse (rawJson: string): Result<JsonElement, GotCourtsError> =
         let doc = JsonDocument.Parse rawJson
         let success = (doc.RootElement.GetProperty "status").GetBoolean()
@@ -57,7 +60,7 @@ module GotCourts =
             Ok resp
         else
             let errorText = (resp.GetProperty "error").GetString()
-            Error errorText
+            Result.Error errorText
 
     let createBlocking (client: HttpClient) (blocking: Blocking): Result<Guid list, GotCourtsError> =
         let pairs = Blocking.toKeyValueMap blocking
@@ -103,3 +106,19 @@ module GotCourts =
 
         processResponse rawJson
         |> Result.map parse
+
+    let loadAllPlayers (client: HttpClient): Result<Player list, GotCourtsError> =
+        let url = String.Format(playersUrlTemplate, allMembersCategory)
+        let rawJson = client.GetStringAsync(url) |> await
+
+        let parse (el: JsonElement) =
+            let arr = el.GetProperty "pageData"
+            arr.EnumerateArray ()
+            |> Seq.map Player.parse
+            |> Seq.toList
+
+        processResponse rawJson
+        |> Result.map parse
+
+    let getPlayerPhotoLink (client: HttpClient): Result<string, GotCourtsError> =
+        Ok "" // FIXME

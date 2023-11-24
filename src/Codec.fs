@@ -132,4 +132,23 @@ module Codec =
 
             (id, reservation)
 
-    //module Player =
+    module Player =
+        let parse (el: JsonElement): Player =
+            let get (name: string) = el.GetProperty name
+            let getString name = (get name).GetString()
+            let getInt name = (get name).GetInt32()
+
+            let getValidatedString name validationField =
+                let validated = (getString validationField |> int = 1)
+                if validated then
+                    Some (getString name)
+                else
+                    None
+
+            {
+                Id = getString "id" |> int |> PlayerId
+                LastName = getString "last_name"
+                FirstName = getString "first_name"
+                Email = getValidatedString "email" "email_valid"
+                Phone = getValidatedString "mobile_phone" "mobile_valid"
+            }
