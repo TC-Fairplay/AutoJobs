@@ -21,17 +21,6 @@ module Codec =
         let calcTime (secondsSinceMidnight: int): TimeOnly =
             TimeOnly(int64 secondsSinceMidnight * 10_000_000L)
 
-        let courtToId = function
-            | Court1 -> 8153
-            | Court2 -> 8154
-            | Court3 -> 8155
-
-        let idToCourt = function
-            | 8153 -> Court1
-            | 8154 -> Court2
-            | 8155 -> Court3
-            | id -> failwithf "Unknown court id '%d." id
-
         let stringToReservationOwner = function
             | "club" -> Club
             | "player" -> Player
@@ -52,7 +41,7 @@ module Codec =
             let guid = Guid.Parse (getString "id")
             let blocking = {
                 Description = (getString "shortDesc")
-                Courts = [getInt "courtId" |> Api.idToCourt]
+                Courts = [getInt "courtId" |> CourtId]
                 Date = getInt "date" |> unixToDateTime |> DateOnly.FromDateTime
                 StartEnd = Some (getTime "startTime", getTime "endTime")
                 Note = getString "note"
@@ -60,7 +49,7 @@ module Codec =
             (guid, blocking)
 
         let toKeyValueMap (b: Blocking): (string * string) list =
-            let toCourtPair no = ("courts[]", no |> Api.courtToId |> string)
+            let toCourtPair (CourtId c) = ("courts[]", c |> string)
             let dateTimePairs =
                 let timePairs =
                     match b.StartEnd with
@@ -118,7 +107,7 @@ module Codec =
             let reservation = {
                 Ownership = getString "ownership" |> Api.stringToReservationOwner
                 Players = (player |> Option.toList) @ partners |> List.map PlayerId
-                Court = getInt "courtId" |> Api.idToCourt
+                Court = getInt "courtId" |> CourtId
                 Date = getInt "date" |> unixToDateTime |> DateOnly.FromDateTime
                 StartEnd = (getTime "startTime", getTime "endTime")
                 BallMachine = getBool "ballMachine"

@@ -87,7 +87,7 @@ module Jobs =
 
                 let blocking = {
                     Description = groundFrostBlockingTitle
-                    Courts = allCourts
+                    Courts = allCourts |> List.map GotCourtsData.courtToId
                     Date = tomorrow
                     StartEnd = startEnd
                     Note = ""

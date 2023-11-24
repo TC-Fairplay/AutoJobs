@@ -59,7 +59,7 @@ module Main =
                         let members = GotCourts.loadAllPlayers client
 
                         let date = DateOnly(2023, 10, 22)
-                        let dayListing = GotCourts.loadDayListing client date
+                        let dayListing = GotCourts.loadDayListing client GotCourtsData.clubId date
 
                         match members, dayListing with
                         | Ok ms, Ok dl ->

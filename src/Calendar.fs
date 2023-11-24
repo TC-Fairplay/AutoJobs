@@ -33,10 +33,11 @@ module Calendar =
         let schedules =
             [Court1; Court2; Court3]
             |> List.map (fun court ->
+                let courtId = GotCourtsData.courtToId court
                 let blockings =
                     dl.Blockings
                     |> List.map snd
-                    |> List.filter (fun b -> b.Courts |> List.contains court)
+                    |> List.filter (fun b -> b.Courts |> List.contains courtId)
                     |> List.map (fun b ->
                         {
                             StartEnd = b.StartEnd |> Option.get
@@ -47,7 +48,7 @@ module Calendar =
                 let reservations =
                     dl.Reservations
                     |> List.map snd
-                    |> List.filter (fun r -> r.Court = court)
+                    |> List.filter (fun r -> r.Court = courtId)
                     |> List.map (fun r ->
                         let content =
                             match r.Players with

@@ -2,14 +2,12 @@ namespace TcFairplay
 
 open System
 
-type CourtNo =
-    | Court1
-    | Court2
-    | Court3
+type ClubId = ClubId of int
+type CourtId = CourtId of int
 
 type Blocking = {
     Description: string
-    Courts: CourtNo list
+    Courts: CourtId list
     Date: DateOnly
     StartEnd: (TimeOnly * TimeOnly) option
     Note: string
@@ -22,7 +20,7 @@ type ReservationOwnership = Player | Club
 type Reservation = {
     Ownership: ReservationOwnership
     Players: PlayerId list
-    Court: CourtNo
+    Court: CourtId
     Date: DateOnly
     StartEnd: (TimeOnly * TimeOnly)
     BallMachine: bool

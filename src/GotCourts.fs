@@ -47,10 +47,6 @@ module GotCourts =
 
     let private toKeyValuePair (x, y) = KeyValuePair(x, y)
 
-    let private clubId = 53223
-
-    let private allMembersCategory = 7515
-
     let processResponse (rawJson: string): Result<JsonElement, GotCourtsError> =
         let doc = JsonDocument.Parse rawJson
         let success = (doc.RootElement.GetProperty "status").GetBoolean()
@@ -88,8 +84,8 @@ module GotCourts =
         |> processResponse
         |> Result.map ignore
 
-    let loadDayListing (client: HttpClient) (date: DateOnly): Result<DayListing, GotCourtsError> =
-        let url = String.Format(listUrlTemplate, clubId, Api.formatDate date)
+    let loadDayListing (client: HttpClient) (ClubId club) (date: DateOnly): Result<DayListing, GotCourtsError> =
+        let url = String.Format(listUrlTemplate, club, Api.formatDate date)
         let rawJson = client.GetStringAsync(url) |> await
 
         let parseList (name: string, parser: JsonElement -> 'T) (resp: JsonElement): 'T list =
@@ -106,6 +102,8 @@ module GotCourts =
 
         processResponse rawJson
         |> Result.map parse
+
+    let private allMembersCategory = 7515
 
     let loadAllPlayers (client: HttpClient): Result<Player list, GotCourtsError> =
         let url = String.Format(playersUrlTemplate, allMembersCategory)
