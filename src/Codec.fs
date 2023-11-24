@@ -43,9 +43,6 @@ module Codec =
 
 
     module Blocking =
-        // FIXME!
-        let date = DateOnly(2023, 1, 1)
-
         let parse (el: JsonElement): (Guid * Blocking) =
             let get (name: string) = el.GetProperty name
             let getString name = (get name).GetString()
@@ -56,7 +53,7 @@ module Codec =
             let blocking = {
                 Description = (getString "shortDesc")
                 Courts = [getInt "courtId" |> Api.idToCourt]
-                Date = date // FIXME!
+                Date = getInt "date" |> unixToDateTime |> DateOnly.FromDateTime
                 StartEnd = Some (getTime "startTime", getTime "endTime")
                 Note = getString "note"
             }
