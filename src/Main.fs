@@ -65,7 +65,7 @@ module Main =
                         | Ok ms, Ok dl ->
                             let calDay = Calendar.buildCalendarDay ms dl
 
-                            calDay.CourtSchedules
+                            calDay.Courts
                             |> List.iter (fun cs ->
                                 printfn "# %A" cs.Court
 

@@ -2,32 +2,32 @@ namespace TcFairplay
 
 open System
 
-type CalendarPlayer =
+type SchedulePlayer =
     | Member of Player
     | Guest
 
-type CalendarEntryContent =
+type ScheduleEntryContent =
     | Blocking of string
     | ClubReservation of string
-    | PlayerReservation of (CalendarPlayer list * bool) // BallMachine
+    | PlayerReservation of (SchedulePlayer list * bool) // BallMachine
 
-type CalendarEntry = {
+type ScheduleEntry = {
     StartEnd: (TimeOnly * TimeOnly)
-    Content: CalendarEntryContent
+    Content: ScheduleEntryContent
 }
 
 type Schedule = {
     Court: CourtNo
-    Entries: CalendarEntry list
+    Entries: ScheduleEntry list
 }
 
-type CalendarDay = {
+type DaySchedule = {
     Date: DateOnly
-    CourtSchedules: Schedule list
+    Courts: Schedule list
 }
 
 module Calendar =
-    let buildCalendarDay (members: Player list) (dl: DayListing): CalendarDay =
+    let buildCalendarDay (members: Player list) (dl: DayListing): DaySchedule =
         let findPlayer id = members |> List.tryFind (fun p -> p.Id = id)
 
         let schedules =
@@ -78,4 +78,4 @@ module Calendar =
                 }
             )
 
-        { Date = dl.Date; CourtSchedules = schedules }
+        { Date = dl.Date; Courts = schedules }
