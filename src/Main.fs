@@ -46,6 +46,13 @@ module Main =
                         use gotCourtsClient = GotCourts.createClient secrets.GotCourts
                         let res = Jobs.groundFrostCheck log gotCourtsClient
                         if Result.isOk res then 0 else 1
+                        (*
+                        match GotCourts.loadDayListing gotCourtsClient (DateOnly(2023, 10, 22)) with
+                        | Ok dl ->
+                            printfn "DayListing: %A" dl
+                            0
+                        | Result.Error err -> 1
+                        *)
 
                     with
                     | exn ->

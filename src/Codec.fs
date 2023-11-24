@@ -32,6 +32,16 @@ module Codec =
             | 8155 -> Court3
             | id -> failwithf "Unknown court id '%d." id
 
+        let stringToReservationOwner = function
+            | "club" -> Club
+            | "player" -> Player
+            | x -> failwithf "Unknown reservation owner type: %s" x
+
+    let tryGetProp (el: JsonElement) (name: string) =
+        let (found, e) = el.TryGetProperty(name)
+        if found then Some e else None
+
+
     module Blocking =
         // FIXME!
         let date = DateOnly(2023, 1, 1)
@@ -79,5 +89,50 @@ module Codec =
                 "note", b.Note
             ]
 
-    //module Reservation =
+    module Reservation =
+        let parse (el: JsonElement): (ReservationId * Reservation) =
+            let get (name: string) =
+                tryGetProp el name
+                |> Option.defaultWith (fun () ->
+                    failwithf "Property '%s' not found in '%s'" name (el.ToString())
+                )
+
+            let getString (name: string): string =
+                tryGetProp el name
+                |> Option.map _.GetString()
+                |> Option.defaultValue ""
+
+            let getInt name = (get name).GetInt32()
+            let getBool name = (get name).GetBoolean()
+            let getTime = getInt >> Api.calcTime
+
+            let id = getInt "id" |> ReservationId
+            let player =
+                tryGetProp el "playerId"
+                |> Option.map _.GetInt32()
+
+            let partners =
+                let getId (el: JsonElement) = el.GetProperty("id").GetInt32()
+
+                (get "partners").EnumerateArray ()
+                |> Seq.map getId
+                |> Seq.toList
+
+            let reservation = {
+                Ownership = getString "ownership" |> Api.stringToReservationOwner
+                Players = (player |> Option.toList) @ partners |> List.map PlayerId
+                Court = getInt "courtId" |> Api.idToCourt
+                Date = getInt "date" |> unixToDateTime |> DateOnly.FromDateTime
+                StartEnd = (getTime "startTime", getTime "endTime")
+                BallMachine = getBool "ballMachine"
+                Text =
+                    match player with
+                    | Some _ -> ""
+                    | None -> getString "text"
+
+                Note = getString "note"
+            }
+
+            (id, reservation)
+
     //module Player =

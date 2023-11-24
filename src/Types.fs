@@ -16,15 +16,17 @@ type Blocking = {
 }
 
 type PlayerId = PlayerId of int
-type ReservationOwner = Player | Club
+type ReservationId = ReservationId of int
+type ReservationOwnership = Player | Club
 
 type Reservation = {
-    Owner: ReservationOwner
+    Ownership: ReservationOwnership
     Players: PlayerId list
     Court: CourtNo
     Date: DateOnly
     StartEnd: (TimeOnly * TimeOnly)
     BallMachine: bool
+    Text: string // e.g. "Privatunterricht" (Ownershop = Club)
     Note: string
 }
 

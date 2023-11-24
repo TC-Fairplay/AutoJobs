@@ -16,3 +16,8 @@ module Utils =
 
     let formatCurrentTimeStamp (): string =
         formatDateTime (currentChTime ())
+
+    let private epoch = DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+
+    let unixToDateTime (secondsSinceEpoch: int): DateTime =
+        epoch.AddSeconds(float secondsSinceEpoch).ToLocalTime()

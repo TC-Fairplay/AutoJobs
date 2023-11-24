@@ -5,6 +5,12 @@ open System.Collections.Generic
 open System.Net.Http
 open System.Text.Json
 
+type DayListing = {
+    Date: DateOnly
+    Blockings: (Guid * Blocking) list
+    Reservations: (ReservationId * Reservation) list
+}
+
 type AuthData = {
     ApiKey: string
     PhpSessionId: string
@@ -79,16 +85,21 @@ module GotCourts =
         |> processResponse
         |> Result.map ignore
 
-    let loadBlockings (client: HttpClient) (date: DateOnly): Result<(Guid * Blocking) list, GotCourtsError> =
+    let loadDayListing (client: HttpClient) (date: DateOnly): Result<DayListing, GotCourtsError> =
         let url = String.Format(listUrlTemplate, clubId, Api.formatDate date)
         let rawJson = client.GetStringAsync(url) |> await
 
-        let getBlockings (resp: JsonElement) =
-            let blockings = resp.GetProperty "blockings"
-
-            blockings.EnumerateArray ()
-            |> Seq.map Blocking.parse
+        let parseList (name: string, parser: JsonElement -> 'T) (resp: JsonElement): 'T list =
+            let arr = resp.GetProperty name
+            arr.EnumerateArray ()
+            |> Seq.map parser
             |> Seq.toList
 
+        let parse el = {
+            Date = date
+            Blockings = parseList ("blockings", Blocking.parse) el
+            Reservations = parseList ("reservations", Reservation.parse) el
+        }
+
         processResponse rawJson
-        |> Result.map getBlockings
+        |> Result.map parse
