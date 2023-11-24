@@ -43,16 +43,58 @@ module Main =
 
                 try
                     try
-                        use gotCourtsClient = GotCourts.createClient secrets.GotCourts
-                        let res = Jobs.groundFrostCheck log gotCourtsClient
-                        if Result.isOk res then 0 else 1
+                        use client = GotCourts.createClient secrets.GotCourts
                         (*
-                        match GotCourts.loadDayListing gotCourtsClient (DateOnly(2023, 10, 22)) with
-                        | Ok dl ->
-                            printfn "DayListing: %A" dl
-                            0
-                        | Result.Error err -> 1
+                        let res = Jobs.groundFrostCheck log client
+                        if Result.isOk res then 0 else 1
+                        [1..30] |> List.iter (fun x ->
+                            match GotCourts.loadDayListing client (DateOnly(2023, 9, x)) with
+                            | Ok dl ->
+                                printfn "DayListing: %A" dl
+                            | Result.Error err ->
+                                printfn "Error: %A" err
+                        )
                         *)
+
+                        let members = GotCourts.loadAllPlayers client
+
+                        let date = DateOnly(2023, 10, 22)
+                        let dayListing = GotCourts.loadDayListing client date
+
+                        match members, dayListing with
+                        | Ok ms, Ok dl ->
+                            let calDay = Calendar.buildCalendarDay ms dl
+
+                            calDay.CourtSchedules
+                            |> List.iter (fun cs ->
+                                printfn "# %A" cs.Court
+
+                                cs.Entries
+                                |> List.iter (fun entry ->
+                                    let (s, e) = entry.StartEnd
+                                    let startEnd = sprintf "%A - %A" s e
+                                    let text =
+                                        match entry.Content with
+                                        | Blocking s -> s
+                                        | ClubReservation s -> s
+                                        | PlayerReservation (ps, ballmachine) ->
+                                            ps
+                                            |> List.map (
+                                                function
+                                                | Member m -> sprintf "%s %s" m.FirstName m.LastName
+                                                | Guest -> "_GAST_"
+                                            )
+                                            |> String.concat ", "
+
+                                    printfn "%s %s" startEnd text
+                                )
+                                printfn ""
+                            )
+
+                        | _ ->
+                            printfn "Error"
+
+                        0
 
                     with
                     | exn ->
