@@ -81,7 +81,7 @@ module Jobs =
 
                 let startEnd =
                     if maxTempTomorrow > minDayTempLimit then
-                        log.Write (Info, "☀️", "Temperature will raise above 5° C tomorrow.")
+                        log.Write (Info, "☀️", "Temperature will rise above 5° C tomorrow.")
                         Some (morning, noon)
                     else
                         log.Write (Warn, "⛄", "Temperature will stay below 5° C tomorrow.")
