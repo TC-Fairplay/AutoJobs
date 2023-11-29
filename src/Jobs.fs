@@ -15,6 +15,8 @@ module Jobs =
     let private allCourts = [Court1; Court2; Court3]
     let private morning = TimeOnly(8, 0)
     let private noon = TimeOnly(12, 0)
+
+    let private evening = TimeOnly(18, 0)
     let private groundFrostBlockingTitle = "❄️❄️❄️ Bodenfrost (automatische Sperre) ❄️❄️❄️"
 
     let private blockCourts (log: Logger) (gotCourtsClient: HttpClient) (blocking: Blocking): Result<unit, GotCourtsError> =
@@ -83,7 +85,8 @@ module Jobs =
                         Some (morning, noon)
                     else
                         log.Write (Warn, "⛄", "Temperature will stay below 5° C tomorrow.")
-                        None
+                        // FIXME: find out why use 'None' here returns "Die Angabe im Feld Zeit muss eine Zahl sein." from GotCourts.
+                        Some (morning, evening)
 
                 let blocking = {
                     Description = groundFrostBlockingTitle
