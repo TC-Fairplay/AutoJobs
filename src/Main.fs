@@ -49,7 +49,7 @@ module Main =
 
                     with
                     | exn ->
-                        log.Write (Error, "💥", sprintf "Exception thrown: %A." exn)
+                        log.Write (Error, "💥", $"Exception thrown: {exn}.")
                         1
 
                 finally

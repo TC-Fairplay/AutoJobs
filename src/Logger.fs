@@ -21,7 +21,8 @@ module Logger =
     let private createSimpleLogger (sink: string -> unit, close: unit -> unit): Logger =
         let mutable stack: Record list = []
         let print (sym: Symbol) (msg: Message): Unit =
-            sink (sprintf "%s %s%s %s" (formatCurrentTimeStamp ()) (String.replicate stack.Length "   ") sym msg)
+            let indent = String.replicate stack.Length "   "
+            sink $"{formatCurrentTimeStamp ()} {indent}{sym} {msg}"
 
         let mutable lastRecord: Record option = None
         {
