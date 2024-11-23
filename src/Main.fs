@@ -72,7 +72,7 @@ module Main =
                                 cs.Entries
                                 |> List.iter (fun entry ->
                                     let (s, e) = entry.StartEnd
-                                    let startEnd = sprintf "%A - %A" s e
+                                    let startEnd = $"{s} - {e}"
                                     let text =
                                         match entry.Content with
                                         | Blocking s -> s
@@ -81,7 +81,7 @@ module Main =
                                             ps
                                             |> List.map (
                                                 function
-                                                | Member m -> sprintf "%s %s" m.FirstName m.LastName
+                                                | Member m -> $"{m.FirstName} {m.LastName}"
                                                 | Guest -> "_GAST_"
                                             )
                                             |> String.concat ", "
@@ -98,7 +98,7 @@ module Main =
 
                     with
                     | exn ->
-                        log.Write (Error, "💥", sprintf "Exception thrown: %A." exn)
+                        log.Write (Error, "💥", $"Exception thrown: {exn}.")
                         1
 
                 finally

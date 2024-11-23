@@ -19,28 +19,28 @@ module Jobs =
 
     let private blockCourts (log: Logger) (gotCourtsClient: HttpClient) (blocking: Blocking): Result<unit, GotCourtsError> =
         let blocking = {
-            blocking with Note = sprintf "Auto-created at %s." (formatCurrentTimeStamp ())
+            blocking with Note = $"Auto-created at {formatCurrentTimeStamp ()}."
         }
 
         let timeWindow =
             let toStr (t: TimeOnly) = t.ToString("HH:mm")
             match blocking.StartEnd with
-            | Some (s, e) -> sprintf "from %s until %s" (toStr s) (toStr e)
+            | Some (s, e) -> $"from {toStr s} until {toStr e}"
             | None -> "for the entire day"
 
         // GotCourts blocking
-        log.Write (Warn, "⛔", sprintf "Blocking all courts tomorrow %s on GotCourts." timeWindow)
+        log.Write (Warn, "⛔", $"Blocking all courts tomorrow {timeWindow} on GotCourts.")
         log.StartBlock ()
 
         let result =
             match GotCourts.createBlocking gotCourtsClient blocking with
             | Ok guids ->
-                guids |> List.iter (fun guid -> log.Write (Warn, "⛔", sprintf "Blocking ID: %A" guid))
+                guids |> List.iter (fun guid -> log.Write (Warn, "⛔", $"Blocking ID: {guid}"))
                 Ok ()
 
             | Result.Error text ->
                 log.Write (Error, "💥", "GotCourt blocking failed.")
-                log.Write (Error, "💥", sprintf "Info: %s" text)
+                log.Write (Error, "💥", $"Info: {text}")
                 Result.Error text
 
         log.EndBlock ()
@@ -53,7 +53,7 @@ module Jobs =
         log.StartBlock ()
 
         // MeteoSwiss temperature prognosis
-        log.Write (Info, "⛅", sprintf "Fetching weather prognosis from MeteoSwiss for postal code %s." postalCode)
+        log.Write (Info, "⛅", $"Fetching weather prognosis from MeteoSwiss for postal code {postalCode}.")
         log.StartBlock()
         let temps = MeteoSwiss.getTemperaturePrognosis postalCode
         log.EndBlock()
@@ -64,7 +64,7 @@ module Jobs =
 
         let result =
             if minTemp <= minNightTempLimit then
-                log.Write (Warn, "❄️", sprintf "Danger of ground frost, temperatur will drop to %2.1f° C in the coming night." minTemp)
+                log.Write (Warn, "❄️", $"Danger of ground frost, temperatur will drop to %2.1f{minTemp}° C in the coming night.")
                 log.StartBlock ()
                 let tomorrow =
                     now.AddDays (1.0)
@@ -79,10 +79,10 @@ module Jobs =
 
                 let startEnd =
                     if maxTempTomorrow > minDayTempLimit then
-                        log.Write (Info, "☀️", "Temperature will raise above 5° C tomorrow.")
+                        log.Write (Info, "☀️", $"Temperature will raise above {minDayTempLimit}° C tomorrow.")
                         Some (morning, noon)
                     else
-                        log.Write (Warn, "⛄", "Temperature will stay below 5° C tomorrow.")
+                        log.Write (Warn, "⛄", $"Temperature will stay below {minDayTempLimit}° C tomorrow.")
                         None
 
                 let blocking = {
@@ -98,7 +98,7 @@ module Jobs =
                 result
 
             else
-                log.Write (Info, "✅", sprintf"All good, minimum temperature in the coming night: %2.1f° C." minTemp)
+                log.Write (Info, "✅", $"All good, minimum temperature in the coming night: %2.1f{minTemp}° C.")
                 Ok ()
 
         log.EndBlock ()

@@ -9,7 +9,7 @@ module Ntfy =
     let client = new HttpClient()
 
     let post (topic: string) (content: string) =
-        let url = sprintf "%s/%s" baseUrl topic
+        let url = $"{baseUrl}/{topic}"
         use sc = new StringContent(content)
 
         printfn "Posting text to ntfy.sh."
